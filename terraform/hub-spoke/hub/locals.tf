@@ -37,26 +37,7 @@ locals {
     distro  = local.kubernetes_distro
   })
 
-  oss_addons = {
-    enable_velero       = try(var.addons.enable_velero, false)
-    enable_keycloak     = try(var.addons.enable_keycloak, false)
-    enable_argocd      = try(var.addons.enable_argocd, false)
-  }
-
-  # Enterprise
-  enterprise_addons = {
-  }
-
-  # Platform
-  platform_addons = {
-  }
-
-  addons = merge(
-    local.oss_addons,
-    local.enterprise_addons,
-    local.platform_addons,
-    local.argocd_cluster_labels
-  )
+  addons = try(var.addons, {})
 
   # Secret Metadata Annotations
   addons_metadata = merge(

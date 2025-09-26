@@ -88,12 +88,16 @@ variable "argocd_chart_version" {
 }
 
 variable "addons" {
-  description = "Kubernetes addons"
-  type        = any
-  default = {
-    enable_argocd   = true
-    enable_keycloak = false
-    enable_velero   = false
+  description = "Addon selector labels. Keys must match ^enable_[a-z0-9_-]+$"
+  type        = map(bool)
+  default     = { # keep existing defaults
+    enable_argocd   = true  # hub
+  }
+  validation {
+    condition = alltrue([
+      for k in keys(var.addons) : can(regex("^enable_[a-z0-9_-]+$", k))
+    ])
+    error_message = "All addon keys must start with 'enable_' and use [a-z0-9_-]."
   }
 }
 
