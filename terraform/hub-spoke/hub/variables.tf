@@ -101,6 +101,18 @@ variable "addons" {
   }
 }
 
+variable "allowed_addons" {
+  description = "Optional allowlist of known addon flags. Extend here (tfvars) when new add-ons are added to the catalogue."
+  type        = list(string)
+  default     = ["argocd","keycloak","velero","cnpg"]
+}
+
+variable "allow_unknown_addons" {
+  description = "Validation mode for addon keys: strict (error on unknown) or lenient (warn via output)."
+  type        = bool
+  default     = true
+}
+
 # Addons Git
 variable "gitops_org" {
   description = "Git repository org/user contains for addons"

@@ -38,6 +38,8 @@ locals {
   })
 
   addons = try(var.addons, {})
+  allowed_addons = formatlist("enable_%s", var.allowed_addons)
+  unknown_addons = tolist(setsubtract(toset(keys(var.addons)), toset(local.allowed_addons)))
 
   # Secret Metadata Annotations
   addons_metadata = merge(
