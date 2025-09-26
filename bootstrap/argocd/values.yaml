@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-bootstrap-values
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-bootstrap
+    app.kubernetes.io/part-of: gitops
+# Update these values to point Argo CD at your Git repository and desired path/branch
+# These values are consumed by kustomize `replacements` in kustomization.yaml
+# so they will populate the Application spec automatically.
+data:
+  # Name of the root Application (App-of-Apps)
+  appName: gitops-root
+  # URL of this Git repository (HTTPS or SSH). Example:
+  # https://github.com/<org>/gitops-control-plane.git or git@github.com:<org>/gitops-control-plane.git
+  repoURL: https://github.com/SilexConsulting/gitops-control-plane.git
+  # Branch, tag, or commit to track - kustomize will update the other files for you
+  targetRevision: main
+  # Path within the repo that defines the cluster state to sync
+  appPath: bootstrap/argocd
+  # Cluster name label (used for identification)
+  clusterName: hub
+  # Argo CD namespace for the Application destination
+  argocdNamespace: argocd

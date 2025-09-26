@@ -1,0 +1,28 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  # Namespace for Argo CD
+  - namespace.yaml
+  # Upstream Argo CD install (stable channel)
+  - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  - ../hub/addons.yaml
+  - ../hub/workloads.yaml
+# Use replacements to inject values from values.yaml into the Application
+replacements:
+    # Pass clusterName into the application-sets chart as a Helm value
+  - source:
+      kind: ConfigMap
+      name: argocd-bootstrap-values
+      fieldPath: data.clusterName
+    targets:
+      - select:
+          kind: Application
+          name: application-sets
+        fieldPaths: [spec.source.helm.parameters.0.value]
+        options:
+          create: true
+# we don't have the ksops plugin and don't want to share keys on the server
+# so you have to create the secret manually
+generators:
+  - ./secret-generator.yaml

@@ -1,0 +1,13 @@
+---
+# nonk8s
+repos:
+  - repo: https://github.com/yannh/kubeconform
+    rev: v0.7.0
+    hooks:
+      - id: kubeconform
+        args:
+          - -strict
+          - -ignore-missing-schemas
+          - -ignore-filename-pattern
+          - (secret-generator\.yaml|secrets\.enc\.yaml)
+        files: (\.ya?ml)$

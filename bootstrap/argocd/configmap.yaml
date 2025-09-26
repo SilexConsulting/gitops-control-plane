@@ -1,0 +1,16 @@
+---
+# ConfigMap: argocd-cm (add or merge the following)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+data:
+  configManagementPlugins: |
+    - name: ksops
+      generate:
+        command: [sh, -c]
+        args: ["kustomize build --enable-alpha-plugins"]
+  repositories: |-
+    - url: https://pajikos.github.io/home-assistant-helm-chart/
+      name: home-assistant

@@ -1,0 +1,24 @@
+---
+# nonk8s
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gitops-root
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: gitops
+    cluster: hub
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/SilexConsulting/gitops-control-plane.git
+    targetRevision: main
+    path: bootstrap/argocd
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions: [CreateNamespace=true]
