@@ -30,3 +30,8 @@ output "cluster_ca_certificate" {
   value       = module.kind_cluster.cluster_ca_certificate
   sensitive   = true
 }
+
+output "addons_unknown_keys" {
+  description = "Unknown addon keys detected (lenient mode only)."
+  value       = local.unknown_addons
+}

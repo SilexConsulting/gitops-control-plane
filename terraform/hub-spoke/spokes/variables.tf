@@ -87,16 +87,30 @@ variable "argocd_chart_version" {
   default     = "8.5.4"
 }
 
-
 variable "addons" {
-  description = "Kubernetes addons"
-  type        = any
-  default = {
-    enable_argocd   = false
-    enable_keycloak = false
-    enable_velero   = false
-    enable_cnpg     = false
+  description = "Addon selector labels. Keys must match ^enable_[a-z0-9_-]+$"
+  type        = map(bool)
+  default     = { # keep existing defaults
+    enable_argocd   = false  # hub
   }
+  validation {
+    condition = alltrue([
+      for k in keys(var.addons) : can(regex("^enable_[a-z0-9_-]+$", k))
+    ])
+    error_message = "All addon keys must start with 'enable_' and use [a-z0-9_-]."
+  }
+}
+
+variable "allowed_addons" {
+  description = "Optional allowlist of known addon flags. Extend here (tfvars) when new add-ons are added to the catalogue."
+  type        = list(string)
+  default     = ["argocd","keycloak","velero","cnpg"]
+}
+
+variable "allow_unknown_addons" {
+  description = "Validation mode for addon keys: strict (error on unknown) or lenient (warn via output)."
+  type        = bool
+  default     = true
 }
 
 # Addons Git
