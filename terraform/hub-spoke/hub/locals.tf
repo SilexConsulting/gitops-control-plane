@@ -37,7 +37,10 @@ locals {
     distro  = local.kubernetes_distro
   })
 
-  addons = try(var.addons, {})
+  addons = merge(
+    local.argocd_cluster_labels,
+    var.addons
+  )
   allowed_addons = formatlist("enable_%s", var.allowed_addons)
   unknown_addons = tolist(setsubtract(toset(keys(var.addons)), toset(local.allowed_addons)))
 
