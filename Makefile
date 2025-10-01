@@ -33,7 +33,7 @@ dev-cluster:
 	terraform init && \
 	./deploy.sh dev
 
-make-prod-cluster:
+prod-cluster:
 	@cd terraform/hub-spoke/spokes && \
 	terraform init && \
 	./deploy.sh prod
