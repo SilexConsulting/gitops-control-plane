@@ -32,10 +32,10 @@ data "external" "spoke_container_ip" {
   program = ["sh", "-c", "docker inspect ${module.kind_cluster.cluster_name}-control-plane --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' | jq -R '{ip: .}'"]
 }
 
-# GitOps Bridge: Bootstrap for Hub Cluster
-# The ArgoCD remote cluster secret is deploy on hub cluster not on spoke clusters
+# GitOps Bridge: Bootstrap for Spoke Cluster
+# The ArgoCD remote cluster secret is deployed on hub cluster not on spoke clusters
 module "gitops_bridge_bootstrap_hub" {
-  source = "git::https://github.com/gitops-bridge-dev/terraform-helm-gitops-bridge?ref=33c09eb68af1ee673040bde58c3188383c46c288"
+  source = "./../../modules/gitops-terraform-bridge"
 
   providers = {
     kubernetes = kubernetes.hub

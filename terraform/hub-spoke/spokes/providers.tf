@@ -7,12 +7,12 @@ terraform {
 
     helm = {
       source  = "hashicorp/helm"
-      version = "2.17.0"
+      version = "3.0.2"
     }
 
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "2.35.1"
+      version = "2.38.0"
     }
 
     kubectl = {
@@ -33,7 +33,7 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = module.kind_cluster.cluster_endpoint
     client_certificate     = module.kind_cluster.client_certificate
     client_key             = module.kind_cluster.client_key
