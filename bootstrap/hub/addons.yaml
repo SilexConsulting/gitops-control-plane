@@ -10,9 +10,9 @@ spec:
     - clusters:
         selector:
           matchExpressions:
-            - key: cluster_name
-              operator: NotIn
-              values: [in-cluster]
+            - key: type
+              operator: In
+              values: ["hub"]
   template:
     metadata:
       name: 'addons'
