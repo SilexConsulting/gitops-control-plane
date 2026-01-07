@@ -33,6 +33,7 @@ locals {
     region  = local.region
     env     = local.env
     type    = local.type
+    is_hub  = "true"
     version = local.kubernetes_version
     distro  = local.kubernetes_distro
   })
@@ -83,8 +84,4 @@ locals {
         enabled: true
     EOT
 
-  tags = {
-    Blueprint  = local.name
-    GithubRepo = "https://github.com/SilexConsulting/gitops-control-plane.git"
-  }
 }

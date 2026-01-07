@@ -17,6 +17,14 @@ Why this repository is useful:
 - bootstrap/argocd: Argo CD namespace, configuration, and secrets (SOPS-encrypted variant included).
 - kubeconfigs/hub-spoke: persisted kubeconfigs.
 
+## Bootstrap Existing Cluster (On-Prem)
+To bootstrap Argo CD into an existing cluster (e.g. MicroK8s on Ubuntu):
+1. Ensure your current environment has access to the cluster via `kubectl`.
+2. Run the bootstrap command specifying your kubectl context:
+```bash
+make on-prem-bootstrap CONTEXT=microk8s-context
+```
+
 ```md
 .
 ├── Makefile
@@ -133,7 +141,7 @@ The hierarchy for values files is:
 ```
   environments/default/[addons/workloads]/<chart>/values.yaml
   environments/<environment>/[addons/workloads]/<chart>/values.yaml
-  cluster/<cluster-name>/[addons/workloads]/<chart>/values.yaml
+  clusters/<cluster-name>/[addons/workloads]/<chart>/values.yaml
 ```
 
 This directory structure enables you to use a single repository for everything.
