@@ -38,6 +38,15 @@ prod-cluster:
 	terraform init && \
 	./deploy.sh prod
 
+on-prem-bootstrap: ## Bootstrap an existing on-prem cluster (specify CONTEXT=your-context)
+	@if [ -z "$(CONTEXT)" ]; then \
+		echo "Please specify CONTEXT=your-kubectl-context"; \
+		exit 1; \
+	fi
+	@cd terraform/on-prem && \
+	terraform init && \
+	terraform apply -auto-approve -var="kubeconfig_context=$(CONTEXT)"
+
 ##@ Terraform
 terraform-rm-state: ## remove terraform states: 'all' for all states, 'spokes' for spoke states, or specify workspace name
 	@if [ -z "$(WHAT)" ]; then \

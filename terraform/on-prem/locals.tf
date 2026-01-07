@@ -1,16 +1,14 @@
 locals {
-  name   = "ex-${replace(basename(path.cwd), "_", "-")}"
+  name   = "on-prem-hub"
   env    = var.environment
   region = var.region
   cloud  = var.cloud_provider
   domain = var.domain_name
   type   = var.cluster_type
-  extra_port_mappings = var.extra_port_mappings
 
   kubernetes_distro  = var.kubernetes_distro
   kubernetes_version = var.kubernetes_version
-  kubernetes_name    = var.cluster_type
-  kubeconfig_path    = "${dirname(dirname(dirname(path.cwd)))}/kubeconfigs/hub-spoke/hub"
+  kubernetes_name    = var.kubeconfig_context
 
   gitops_addons_url      = "${var.gitops_org}/${var.gitops_addons_repo}"
   gitops_addons_basepath = var.gitops_addons_basepath
@@ -27,7 +25,6 @@ locals {
   gitops_workloads_revision = var.gitops_workloads_revision
 
   # Cluster labels
-  # Argocd secret labels for cluster selector
   argocd_cluster_labels = merge({
     cloud   = local.cloud
     region  = local.region
@@ -42,8 +39,6 @@ locals {
     local.argocd_cluster_labels,
     var.addons
   )
-  allowed_addons = formatlist("enable_%s", var.allowed_addons)
-  unknown_addons = tolist(setsubtract(toset(keys(var.addons)), toset(local.allowed_addons)))
 
   # Secret Metadata Annotations
   addons_metadata = merge(
@@ -67,8 +62,8 @@ locals {
   )
 
   argocd_apps = {
-    addons    = var.argocd_files_config.load_addons ? file("${dirname(dirname(dirname(path.cwd)))}/bootstrap/hub/addons.yaml") : ""
-    workloads = var.argocd_files_config.load_workloads ? file("${dirname(dirname(dirname(path.cwd)))}/bootstrap/hub/workloads.yaml") : ""
+    addons    = var.argocd_files_config.load_addons ? file("${path.module}/../../bootstrap/hub/addons.yaml") : ""
+    workloads = var.argocd_files_config.load_workloads ? file("${path.module}/../../bootstrap/hub/workloads.yaml") : ""
   }
 
   argocd_helm_values = <<-EOT
@@ -82,6 +77,8 @@ locals {
       logFormat: json
       metrics:
         enabled: true
+    server:
+      service:
+        type: LoadBalancer
     EOT
-
 }

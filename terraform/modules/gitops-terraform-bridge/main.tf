@@ -51,6 +51,7 @@ locals {
     cluster_name                     = local.cluster_name
     environment                      = local.environment
     enable_argocd                    = var.install
+    is_hub                           = "false"
     "argocd.argoproj.io/secret-type" = "cluster"
   },
     try(var.cluster.addons, {})
@@ -121,5 +122,5 @@ resource "helm_release" "bootstrap" {
     EOT
   ]
 
-  depends_on = [resource.kubernetes_secret_v1.cluster]
+  depends_on = [kubernetes_secret_v1.cluster]
 }
