@@ -104,7 +104,7 @@ variable "addons" {
 variable "allowed_addons" {
   description = "Optional allowlist of known addon flags. Extend here (tfvars) when new add-ons are added to the catalogue."
   type        = list(string)
-  default     = ["argocd", "keycloak", "velero", "cnpg", "private_overlays"]
+  default     = ["argocd", "keycloak", "velero", "cnpg"]
 }
 
 variable "allow_unknown_addons" {
@@ -207,6 +207,12 @@ variable "gitops_addons_private_repo" {
   default     = "gitops-private"
 }
 
+variable "gitops_addons_private_basepath" {
+  description = "Subtree within the private repo for addons (basepath); enables one-repo-or-two"
+  type        = string
+  default     = "addons"
+}
+
 variable "gitops_addons_private_revision" {
   description = "Private overlay repo revision/branch/ref for addons values"
   type        = string
@@ -217,6 +223,12 @@ variable "gitops_workloads_private_repo" {
   description = "Private overlay repo for workloads values"
   type        = string
   default     = "gitops-private"
+}
+
+variable "gitops_workloads_private_basepath" {
+  description = "Subtree within the private repo for workloads (basepath); enables one-repo-or-two"
+  type        = string
+  default     = "workloads"
 }
 
 variable "gitops_workloads_private_revision" {

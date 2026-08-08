@@ -26,10 +26,12 @@ locals {
   gitops_workloads_path     = var.gitops_workloads_path
   gitops_workloads_revision = var.gitops_workloads_revision
 
-  # Private overlay repos (GIT-13) — SSH-accessed, values-only
+  # Private overlay / deployments repos (GIT-13) — SSH-accessed
   gitops_addons_private_url         = "${var.gitops_private_org}/${var.gitops_addons_private_repo}"
+  gitops_addons_private_basepath    = var.gitops_addons_private_basepath
   gitops_addons_private_revision    = var.gitops_addons_private_revision
   gitops_workloads_private_url      = "${var.gitops_private_org}/${var.gitops_workloads_private_repo}"
+  gitops_workloads_private_basepath = var.gitops_workloads_private_basepath
   gitops_workloads_private_revision = var.gitops_workloads_private_revision
 
   # Cluster labels
@@ -71,11 +73,13 @@ locals {
       workloads_repo_revision = local.gitops_workloads_revision
     },
     {
-      # Private overlay repos (GIT-13). Consumed by catalogue ApplicationSets
-      # only for clusters labelled enable_private_overlays=true.
+      # Private overlay / deployments repos (GIT-13). Consumed by the private repo's
+      # bootstrap Kustomize (deployments mode) to template per-cluster overlay sources.
       addons_private_repo_url         = local.gitops_addons_private_url
+      addons_private_repo_basepath    = local.gitops_addons_private_basepath
       addons_private_repo_revision    = local.gitops_addons_private_revision
       workloads_private_repo_url      = local.gitops_workloads_private_url
+      workloads_private_repo_basepath = local.gitops_workloads_private_basepath
       workloads_private_repo_revision = local.gitops_workloads_private_revision
     },
   )
