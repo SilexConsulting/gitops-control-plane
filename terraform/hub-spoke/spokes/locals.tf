@@ -25,6 +25,12 @@ locals {
   gitops_workloads_path     = var.gitops_workloads_path
   gitops_workloads_revision = var.gitops_workloads_revision
 
+  # Private overlay repos (GIT-13) — SSH-accessed, values-only
+  gitops_addons_private_url         = "${var.gitops_private_org}/${var.gitops_addons_private_repo}"
+  gitops_addons_private_revision    = var.gitops_addons_private_revision
+  gitops_workloads_private_url      = "${var.gitops_private_org}/${var.gitops_workloads_private_repo}"
+  gitops_workloads_private_revision = var.gitops_workloads_private_revision
+
   # Cluster labels
   # Argocd secret labels for cluster selector
   argocd_cluster_labels = merge({
@@ -63,6 +69,14 @@ locals {
       workloads_repo_basepath = local.gitops_workloads_basepath
       workloads_repo_path     = local.gitops_workloads_path
       workloads_repo_revision = local.gitops_workloads_revision
+    },
+    {
+      # Private overlay repos (GIT-13). Consumed by catalogue ApplicationSets
+      # only for clusters labelled enable_private_overlays=true.
+      addons_private_repo_url         = local.gitops_addons_private_url
+      addons_private_repo_revision    = local.gitops_addons_private_revision
+      workloads_private_repo_url      = local.gitops_workloads_private_url
+      workloads_private_repo_revision = local.gitops_workloads_private_revision
     },
   )
 

@@ -104,7 +104,7 @@ variable "addons" {
 variable "allowed_addons" {
   description = "Optional allowlist of known addon flags. Extend here (tfvars) when new add-ons are added to the catalogue."
   type        = list(string)
-  default     = ["argocd","keycloak","velero","cnpg"]
+  default     = ["argocd", "keycloak", "velero", "cnpg", "private_overlays"]
 }
 
 variable "allow_unknown_addons" {
@@ -118,6 +118,14 @@ variable "gitops_org" {
   description = "Git repository org/user contains for addons"
   type        = string
   default     = "https://github.com/SilexConsulting"
+}
+
+# Private overlay Git org/prefix. Distinct from gitops_org because the private
+# overlay repo is accessed over SSH (deploy key), e.g. "git@github.com:SilexConsulting".
+variable "gitops_private_org" {
+  description = "Git org/prefix (SSH) for the private overlay repo(s)"
+  type        = string
+  default     = "git@github.com:SilexConsulting"
 }
 
 variable "gitops_addons_repo" {
@@ -184,6 +192,35 @@ variable "gitops_workloads_path" {
 
 variable "gitops_workloads_revision" {
   description = "Git repository revision/branch/ref for workload"
+  type        = string
+  default     = "main"
+}
+
+# Private overlay Git (GIT-13)
+# Values-only overlay repo layered over the public catalogues; environments/ and
+# clusters/ live at repo root, so a `ref` source consumes only repo + revision.
+# addons and workloads point at the same repo by default (single private repo);
+# set different repos to split them.
+variable "gitops_addons_private_repo" {
+  description = "Private overlay repo for addons values"
+  type        = string
+  default     = "gitops-private"
+}
+
+variable "gitops_addons_private_revision" {
+  description = "Private overlay repo revision/branch/ref for addons values"
+  type        = string
+  default     = "main"
+}
+
+variable "gitops_workloads_private_repo" {
+  description = "Private overlay repo for workloads values"
+  type        = string
+  default     = "gitops-private"
+}
+
+variable "gitops_workloads_private_revision" {
+  description = "Private overlay repo revision/branch/ref for workloads values"
   type        = string
   default     = "main"
 }
