@@ -1,0 +1,13 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  ci:
+    uses: SilexConsulting/.github/.github/workflows/gitops-ci.yml@main
+    with:
+      kubernetes: true
+      kustomize_exclude: "bootstrap/argocd"   # sops/ksops build — needs the age key, skip in CI
+      terraform: true
+      terraform_dirs: "terraform/on-prem terraform/hub-spoke/hub terraform/hub-spoke/spokes"
