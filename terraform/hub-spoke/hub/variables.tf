@@ -74,10 +74,12 @@ variable "argocd_files_config" {
   type = object({
     load_addons    = bool
     load_workloads = bool
+    load_resources = optional(bool, true)
   })
   default = {
     load_addons    = true
     load_workloads = true
+    load_resources = true
   }
 }
 
@@ -90,8 +92,8 @@ variable "argocd_chart_version" {
 variable "addons" {
   description = "Addon selector labels. Keys must match ^enable_[a-z0-9_-]+$"
   type        = map(bool)
-  default     = { # keep existing defaults
-    enable_argocd   = true  # hub
+  default = {            # keep existing defaults
+    enable_argocd = true # hub
   }
   validation {
     condition = alltrue([
@@ -105,6 +107,12 @@ variable "allowed_addons" {
   description = "Optional allowlist of known addon flags. Extend here (tfvars) when new add-ons are added to the catalogue."
   type        = list(string)
   default     = ["argocd", "keycloak", "velero", "cnpg"]
+}
+
+variable "allowed_workloads" {
+  description = "Optional allowlist of known workload flags (enable_<workload>). Extend here (tfvars) when new workloads are added to the catalogue. Used to validate enable_* keys alongside allowed_addons."
+  type        = list(string)
+  default     = ["home-assistant", "opensearch"]
 }
 
 variable "allow_unknown_addons" {
@@ -240,8 +248,8 @@ variable "gitops_workloads_private_revision" {
 variable "extra_port_mappings" {
   description = "List of extra port mappings  to add to the control-plane node"
   type = list(object({
-    container_port  = string
-    host_port       = string
+    container_port = string
+    host_port      = string
   }))
   default = []
 }

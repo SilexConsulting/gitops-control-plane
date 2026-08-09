@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: resources-addons
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+  generators:
+    # Install the addon-resources ApplicationSet onto the cluster that runs Argo CD (the hub);
+    # its own clusters-generator then fans resources out to enable_resources clusters.
+    - clusters:
+        selector:
+          matchLabels:
+            is_hub: "true"
+  template:
+    metadata:
+      name: 'resources-addons'
+    spec:
+      project: default
+      # GIT-20 (Option A): the addon-resources ApplicationSet is always sourced from the
+      # PUBLIC addons repo's top-level bootstrap/ dir — in both trial and deployments mode.
+      # Per-cluster / private customisation is applied by that appset's annotation-templated
+      # kustomize.patches (mode-independent), not by re-sourcing from the private repo, so
+      # this root never collides with the addons/workloads roots' private bootstrap build.
+      source:
+        repoURL: '{{ .metadata.annotations.addons_repo_url }}'
+        targetRevision: '{{ .metadata.annotations.addons_repo_revision }}'
+        path: bootstrap
+        directory:
+          recurse: true
+      destination:
+        namespace: 'argocd'
+        name: '{{ .name }}'
+      syncPolicy:
+        automated: {}

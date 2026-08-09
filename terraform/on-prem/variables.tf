@@ -60,10 +60,12 @@ variable "argocd_files_config" {
   type = object({
     load_addons    = bool
     load_workloads = bool
+    load_resources = optional(bool, true)
   })
   default = {
     load_addons    = true
     load_workloads = true
+    load_resources = true
   }
 }
 
@@ -76,8 +78,8 @@ variable "argocd_chart_version" {
 variable "addons" {
   description = "Addon selector labels. Keys must match ^enable_[a-z0-9_-]+$"
   type        = map(bool)
-  default     = {
-    enable_argocd   = true
+  default = {
+    enable_argocd = true
   }
 }
 
@@ -85,6 +87,18 @@ variable "allowed_addons" {
   description = "Optional allowlist of known addon flags."
   type        = list(string)
   default     = ["argocd", "keycloak", "velero", "cnpg"]
+}
+
+variable "allowed_workloads" {
+  description = "Optional allowlist of known workload flags (enable_<workload>). Extend when new workloads are added to the catalogue. Used to validate enable_* keys alongside allowed_addons."
+  type        = list(string)
+  default     = ["home-assistant", "opensearch"]
+}
+
+variable "allow_unknown_addons" {
+  description = "Validation mode for enable_* keys: strict (error on unknown) or lenient (default, warn only)."
+  type        = bool
+  default     = true
 }
 
 # Addons Git

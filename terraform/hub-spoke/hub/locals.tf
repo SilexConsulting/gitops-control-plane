@@ -1,10 +1,10 @@
 locals {
-  name   = "ex-${replace(basename(path.cwd), "_", "-")}"
-  env    = var.environment
-  region = var.region
-  cloud  = var.cloud_provider
-  domain = var.domain_name
-  type   = var.cluster_type
+  name                = "ex-${replace(basename(path.cwd), "_", "-")}"
+  env                 = var.environment
+  region              = var.region
+  cloud               = var.cloud_provider
+  domain              = var.domain_name
+  type                = var.cluster_type
   extra_port_mappings = var.extra_port_mappings
 
   kubernetes_distro  = var.kubernetes_distro
@@ -52,8 +52,11 @@ locals {
     local.argocd_cluster_labels,
     var.addons
   )
-  allowed_addons = formatlist("enable_%s", var.allowed_addons)
-  unknown_addons = tolist(setsubtract(toset(keys(var.addons)), toset(local.allowed_addons)))
+  allowed_addons    = formatlist("enable_%s", var.allowed_addons)
+  allowed_workloads = formatlist("enable_%s", var.allowed_workloads)
+  # All recognised enable_* keys: add-ons, workloads, plus the resources master switch (GIT-20).
+  allowed_enable_keys = distinct(concat(local.allowed_addons, local.allowed_workloads, ["enable_resources"]))
+  unknown_addons      = tolist(setsubtract(toset(keys(var.addons)), toset(local.allowed_enable_keys)))
 
   # Secret Metadata Annotations
   addons_metadata = merge(
@@ -86,10 +89,18 @@ locals {
     },
   )
 
-  argocd_apps = {
+  # Keys become Helm release names (must be RFC1123: lowercase, hyphens — no underscores).
+  # Empty values are filtered out below so gated-off entries don't create empty releases.
+  argocd_apps_all = {
     addons    = var.argocd_files_config.load_addons ? file("${dirname(dirname(dirname(path.cwd)))}/bootstrap/hub/addons.yaml") : ""
     workloads = var.argocd_files_config.load_workloads ? file("${dirname(dirname(dirname(path.cwd)))}/bootstrap/hub/workloads.yaml") : ""
+    # GIT-20: resource roots. TRIAL-ONLY — they source the PUBLIC repos' top-level bootstrap/.
+    # In deployments mode (a private repo is set) the private bootstrap imports & patches the
+    # resources appset instead, so the root is omitted to avoid delivering the appset twice.
+    "resources-addons"    = var.argocd_files_config.load_resources && local.gitops_addons_private_url == "" ? file("${dirname(dirname(dirname(path.cwd)))}/bootstrap/hub/resources-addons.yaml") : ""
+    "resources-workloads" = var.argocd_files_config.load_resources && local.gitops_workloads_private_url == "" ? file("${dirname(dirname(dirname(path.cwd)))}/bootstrap/hub/resources-workloads.yaml") : ""
   }
+  argocd_apps = { for k, v in local.argocd_apps_all : k => v if v != "" }
 
   argocd_helm_values = <<-EOT
     dex:
