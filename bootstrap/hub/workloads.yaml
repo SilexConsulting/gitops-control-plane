@@ -4,6 +4,8 @@ metadata:
   name: workloads
   namespace: argocd
 spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
   syncPolicy:
     preserveResourcesOnDeletion: false # in production environments should be true
   generators:
@@ -18,16 +20,30 @@ spec:
       name: 'workloads'
     spec:
       project: default
+      # Deployments mode (GIT-13): if the cluster secret carries a non-empty
+      # `workloads_private_repo_url`, target the private deployments repo's bootstrap/
+      # (a Kustomize build that imports the clean public appsets, layers private values
+      # and adds extra apps). Otherwise fall back to the public catalogue directory
+      # (trial mode, `directory.recurse` added by templatePatch below). The public
+      # `workloads_repo_url` is never repointed, so every child appset keeps sourcing its
+      # `$workloads` base from the public catalogue.
       source:
-        repoURL: '{{metadata.annotations.workloads_repo_url}}'
-        path: '{{metadata.annotations.workloads_repo_basepath}}/{{metadata.annotations.workloads_repo_path}}'
-        targetRevision: '{{metadata.annotations.workloads_repo_revision}}'
+        repoURL: '{{- if .metadata.annotations.workloads_private_repo_url }}{{ .metadata.annotations.workloads_private_repo_url }}{{- else }}{{ .metadata.annotations.workloads_repo_url }}{{- end }}'
+        targetRevision: '{{- if .metadata.annotations.workloads_private_repo_url }}{{ .metadata.annotations.workloads_private_repo_revision }}{{- else }}{{ .metadata.annotations.workloads_repo_revision }}{{- end }}'
+        path: '{{- if .metadata.annotations.workloads_private_repo_url }}{{ .metadata.annotations.workloads_private_repo_basepath }}/bootstrap{{- else }}{{ .metadata.annotations.workloads_repo_basepath }}/{{ .metadata.annotations.workloads_repo_path }}{{- end }}'
+      destination:
+        namespace: 'argocd'
+        name: '{{ .name }}'
+      syncPolicy:
+        automated: {}
+  # Trial mode only: the public catalogue path is a plain directory of appsets, so it
+  # needs directory.recurse. In deployments mode the private bootstrap/ is a Kustomize
+  # build (auto-detected), and `directory` must be absent — so this patch is empty there.
+  templatePatch: |
+    {{- if not .metadata.annotations.workloads_private_repo_url }}
+    spec:
+      source:
         directory:
           recurse: true
           exclude: exclude/*
-      destination:
-        namespace: 'argocd'
-        name: '{{name}}'
-      syncPolicy:
-        automated: {}
-        preserveResourcesOnDeletion: false  # Should be true in production
+    {{- end }}

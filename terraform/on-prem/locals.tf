@@ -24,11 +24,13 @@ locals {
   gitops_workloads_path     = var.gitops_workloads_path
   gitops_workloads_revision = var.gitops_workloads_revision
 
-  # Private overlay / deployments repos (GIT-13) — SSH-accessed
-  gitops_addons_private_url         = "${var.gitops_private_org}/${var.gitops_addons_private_repo}"
+  # Private deployments repos (GIT-13) — SSH-accessed. URL is empty unless a repo is set
+  # (opt-in), so a public-only trial cluster emits no private annotation and the root
+  # bootstrap appset falls back to the public catalogue.
+  gitops_addons_private_url         = var.gitops_addons_private_repo == "" ? "" : "${var.gitops_private_org}/${var.gitops_addons_private_repo}"
   gitops_addons_private_basepath    = var.gitops_addons_private_basepath
   gitops_addons_private_revision    = var.gitops_addons_private_revision
-  gitops_workloads_private_url      = "${var.gitops_private_org}/${var.gitops_workloads_private_repo}"
+  gitops_workloads_private_url      = var.gitops_workloads_private_repo == "" ? "" : "${var.gitops_private_org}/${var.gitops_workloads_private_repo}"
   gitops_workloads_private_basepath = var.gitops_workloads_private_basepath
   gitops_workloads_private_revision = var.gitops_workloads_private_revision
 

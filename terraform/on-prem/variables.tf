@@ -170,15 +170,15 @@ variable "gitops_workloads_revision" {
   default     = "main"
 }
 
-# Private overlay Git (GIT-13)
-# Values-only overlay repo layered over the public catalogues; environments/ and
-# clusters/ live at repo root, so a `ref` source consumes only repo + revision.
-# addons and workloads point at the same repo by default (single private repo);
-# set different repos to split them.
+# Private deployments repo (GIT-13). OPT-IN: empty by default so a public-only "trial"
+# install never references it (the root bootstrap appset falls back to the public catalogue).
+# Set the repo name (per cluster, via tfvars) to enable the deployments overlay: the root
+# appset then targets this repo's bootstrap/, which imports the clean public appsets and
+# layers private values + adds extra apps. addons and workloads may share one repo or split.
 variable "gitops_addons_private_repo" {
-  description = "Private overlay repo for addons values"
+  description = "Private deployments repo for addons (empty = trial/public-only; set to opt in)"
   type        = string
-  default     = "gitops-private"
+  default     = ""
 }
 
 variable "gitops_addons_private_basepath" {
@@ -194,9 +194,9 @@ variable "gitops_addons_private_revision" {
 }
 
 variable "gitops_workloads_private_repo" {
-  description = "Private overlay repo for workloads values"
+  description = "Private deployments repo for workloads (empty = trial/public-only; set to opt in)"
   type        = string
-  default     = "gitops-private"
+  default     = ""
 }
 
 variable "gitops_workloads_private_basepath" {
