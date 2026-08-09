@@ -93,7 +93,7 @@ own repo via that repo's cluster-secret annotations:
 
 | ApplicationSet | Repo annotations | Kustomize sources (layered default → env → cluster) |
 |---|---|---|
-| `addon-resources` | `addons_repo_url` / `addons_repo_revision` | `environments/default/resources`, `environments/{env}/resources`, `clusters/{cluster}/resources` |
+| `addons-resources` | `addons_repo_url` / `addons_repo_revision` | `environments/default/resources`, `environments/{env}/resources`, `clusters/{cluster}/resources` |
 | `workload-resources` | `workloads_repo_url` / `workloads_repo_revision` | `environments/default/resources`, `environments/{env}/resources`, `clusters/{cluster}/resources` |
 
 Key properties:
@@ -119,7 +119,7 @@ reaches a cluster depends on the mode, and the two modes are **mutually exclusiv
 the appset is never delivered twice:
 
 - **Trial / public-only** (no `*_private_repo_url`): the control plane's
-  `bootstrap/hub/resources-{addons,workloads}.yaml` **root** ApplicationSets deliver it — they
+  `bootstrap/hub/{addons-resources-root,workload-resources-root}.yaml` **root** ApplicationSets deliver it — they
   target the public repo's top-level `bootstrap/` and install the appset onto the Argo hub
   (selector `is_hub: "true"`). These roots are **trial-only**: in `argocd_apps` they resolve to
   `""` when the corresponding `*_private_repo_url` is set, so nothing is emitted in deployments
@@ -132,7 +132,7 @@ the appset is never delivered twice:
   there is no duplicate ApplicationSet.
 
 Both paths were validated live on a KinD hub (see "Validation"). The `argocd_apps` map keys
-become Helm release names, so they must be RFC1123 (`resources-addons`, hyphens — **not**
+become Helm release names, so they must be RFC1123 (`addons-resources-root`, hyphens — **not**
 underscores), and empty entries are filtered out so a trial-only-gated entry creates no release.
 
 Terraform changes (all three stacks: `on-prem`, `hub-spoke/hub`, `hub-spoke/spokes`):
@@ -184,17 +184,17 @@ public environments/default/resources
 
 ### Validation — done 2026-08-09 on a KinD hub (`make hub-cluster`)
 
-- **Both delivery modes at once:** addons in deployments mode (addon-resources delivered by the
+- **Both delivery modes at once:** addons in deployments mode (addons-resources delivered by the
   `gitops-private` bootstrap), workloads in trial mode (workload-resources delivered by the
   control-plane trial root). All three resource apps `Synced/Healthy`.
 - **Convention + gating:** the public `IngressClass` deployed to the hub (env=dev, cluster=hub);
   the ivylen-scoped CNPG `Cluster` was correctly NOT rendered on the hub.
-- **Private override proven:** `gitops-private` patched the imported `addon-resources` appset to
+- **Private override proven:** `gitops-private` patched the imported `addons-resources` appset to
   annotate the public IngressClass; the live object carried
   `git-20.silex-consulting.com/private-override`. Changing the value in `gitops-private` and
   pushing propagated to the live resource — the public repo was never touched.
 - **Bugs found & fixed during the test:** (1) `argocd_apps` keys become Helm release names —
-  renamed `resources_addons`→`resources-addons` and filtered empty entries; (2) the appset used
+  renamed underscores→hyphens (e.g. `addons-resources-root`) and filtered empty entries; (2) the appset used
   a `merge` generator with a single child (`merge` needs ≥2) — replaced with a plain `clusters`
   generator; (3) each enabled `(env, cluster)` needs its `resources/` scope dir to exist or the
   kustomize source 404s — ship empty scope stubs (a future enhancement could tolerate missing

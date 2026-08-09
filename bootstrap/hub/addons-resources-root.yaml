@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: resources-addons
+  name: addons-resources-root
   namespace: argocd
 spec:
   goTemplate: true
@@ -17,7 +17,7 @@ spec:
             is_hub: "true"
   template:
     metadata:
-      name: 'resources-addons'
+      name: 'addons-resources-root'
     spec:
       project: default
       # GIT-20 (Option A): the addon-resources ApplicationSet is always sourced from the

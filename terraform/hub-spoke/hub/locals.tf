@@ -97,8 +97,8 @@ locals {
     # GIT-20: resource roots. TRIAL-ONLY — they source the PUBLIC repos' top-level bootstrap/.
     # In deployments mode (a private repo is set) the private bootstrap imports & patches the
     # resources appset instead, so the root is omitted to avoid delivering the appset twice.
-    "resources-addons"    = var.argocd_files_config.load_resources && local.gitops_addons_private_url == "" ? file("${dirname(dirname(dirname(path.cwd)))}/bootstrap/hub/resources-addons.yaml") : ""
-    "resources-workloads" = var.argocd_files_config.load_resources && local.gitops_workloads_private_url == "" ? file("${dirname(dirname(dirname(path.cwd)))}/bootstrap/hub/resources-workloads.yaml") : ""
+    "addons-resources-root"   = var.argocd_files_config.load_resources && local.gitops_addons_private_url == "" ? file("${dirname(dirname(dirname(path.cwd)))}/bootstrap/hub/addons-resources-root.yaml") : ""
+    "workload-resources-root" = var.argocd_files_config.load_resources && local.gitops_workloads_private_url == "" ? file("${dirname(dirname(dirname(path.cwd)))}/bootstrap/hub/workload-resources-root.yaml") : ""
   }
   argocd_apps = { for k, v in local.argocd_apps_all : k => v if v != "" }
 
