@@ -86,15 +86,25 @@ right repo annotations.
 
 ## The ApplicationSets
 
-A clean `resources` ApplicationSet lives in a **new top-level `bootstrap/` directory in each
-public repo** (`gitops-addons/bootstrap/resources.yaml`,
-`gitops-workloads/bootstrap/resources.yaml`). There are two, one per repo, so each sources its
-own repo via that repo's cluster-secret annotations:
+There are **three** resource categories, each an ApplicationSet producing one Application per
+cluster named `cluster-<cluster_name>[-<scope>]-resources`:
 
-| ApplicationSet | Repo annotations | Kustomize sources (layered default → env → cluster) |
-|---|---|---|
-| `addons-resources` | `addons_repo_url` / `addons_repo_revision` | `environments/default/resources`, `environments/{env}/resources`, `clusters/{cluster}/resources` |
-| `workload-resources` | `workloads_repo_url` / `workloads_repo_revision` | `environments/default/resources`, `environments/{env}/resources`, `clusters/{cluster}/resources` |
+| ApplicationSet | Application | Category | Source (per scope: `environments/default`, `environments/<env>`, `clusters/<cluster>`) |
+|---|---|---|---|
+| `resources` (root-level, control-plane `bootstrap/hub/resources.yaml`) | `cluster-<name>-resources` | **cluster-wide** (no owner) — `IngressClass`, `StorageClass` | **`gitops-addons`** `…/resources/` |
+| `addons-resources` (`gitops-addons/bootstrap/resources.yaml`) | `cluster-<name>-addons-resources` | **addon-owned** — CNPG `Cluster` | `gitops-addons` `…/addons-resources/` |
+| `workloads-resources` (`gitops-workloads/bootstrap/resources.yaml`) | `cluster-<name>-workloads-resources` | **workload-owned** — ESO `ExternalSecret` | `gitops-workloads` `…/resources/` |
+
+> **Signpost — where cluster-wide resources live:** `gitops-addons/environments/default/resources/`
+> (plus `environments/<env>/resources/` and `clusters/<cluster>/resources/` overlays). Addon-owned
+> resources use the sibling `addons-resources/` tree in the same repo so the two never collide;
+> workload-owned resources use `resources/` in the workloads repo.
+
+The global `resources` appset is **root-level** (applied by Terraform in both modes; it reads the
+addons repo, which is never repointed). `addons-resources` / `workloads-resources` are delivered
+"inside" their catalogue flow: trial mode via the control-plane roots
+`bootstrap/hub/{addons,workloads}-resources-root.yaml` (trial-only), deployments mode via the
+private repo's `<basepath>/bootstrap` import.
 
 Key properties:
 

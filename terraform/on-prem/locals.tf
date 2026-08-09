@@ -95,8 +95,13 @@ locals {
     # GIT-20: resource roots. TRIAL-ONLY — they source the PUBLIC repos' top-level bootstrap/.
     # In deployments mode (a private repo is set) the private bootstrap imports & patches the
     # resources appset instead, so the root is omitted to avoid delivering the appset twice.
-    "addons-resources-root"   = var.argocd_files_config.load_resources && local.gitops_addons_private_url == "" ? file("${path.module}/../../bootstrap/hub/addons-resources-root.yaml") : ""
-    "workload-resources-root" = var.argocd_files_config.load_resources && local.gitops_workloads_private_url == "" ? file("${path.module}/../../bootstrap/hub/workload-resources-root.yaml") : ""
+    # Global cluster-wide resources appset (cluster-<name>-resources): a real root-level appset
+    # applied in both modes (reads the addons repo's resources/ tree — never repointed).
+    resources = var.argocd_files_config.load_resources ? file("${path.module}/../../bootstrap/hub/resources.yaml") : ""
+    # Addon/workload resource appsets are delivered "inside" their catalogue flow; these roots
+    # are TRIAL-ONLY (omitted when a private repo is set — the private bootstrap imports them).
+    "addons-resources-root"    = var.argocd_files_config.load_resources && local.gitops_addons_private_url == "" ? file("${path.module}/../../bootstrap/hub/addons-resources-root.yaml") : ""
+    "workloads-resources-root" = var.argocd_files_config.load_resources && local.gitops_workloads_private_url == "" ? file("${path.module}/../../bootstrap/hub/workloads-resources-root.yaml") : ""
   }
   argocd_apps = { for k, v in local.argocd_apps_all : k => v if v != "" }
 

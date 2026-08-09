@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: workload-resources-root
+  name: workloads-resources-root
   namespace: argocd
 spec:
   goTemplate: true
@@ -17,7 +17,7 @@ spec:
             is_hub: "true"
   template:
     metadata:
-      name: 'workload-resources-root'
+      name: 'workloads-resources-root'
     spec:
       project: default
       # GIT-20 (Option A): the workload-resources ApplicationSet is always sourced from the
