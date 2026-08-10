@@ -104,7 +104,7 @@ variable "addons" {
 variable "allowed_addons" {
   description = "Optional allowlist of known addon flags. Extend here (tfvars) when new add-ons are added to the catalogue."
   type        = list(string)
-  default     = ["argocd","keycloak","velero","cnpg"]
+  default     = ["argocd", "keycloak", "velero", "cnpg"]
 }
 
 variable "allow_unknown_addons" {
@@ -118,6 +118,14 @@ variable "gitops_org" {
   description = "Git repository org/user contains for addons"
   type        = string
   default     = "https://github.com/SilexConsulting"
+}
+
+# Private overlay Git org/prefix. Distinct from gitops_org because the private
+# overlay repo is accessed over SSH (deploy key), e.g. "git@github.com:SilexConsulting".
+variable "gitops_private_org" {
+  description = "Git org/prefix (SSH) for the private overlay repo(s)"
+  type        = string
+  default     = "git@github.com:SilexConsulting"
 }
 
 variable "gitops_addons_repo" {
@@ -184,6 +192,47 @@ variable "gitops_workloads_path" {
 
 variable "gitops_workloads_revision" {
   description = "Git repository revision/branch/ref for workload"
+  type        = string
+  default     = "main"
+}
+
+# Private deployments repo (GIT-13). OPT-IN: empty by default so a public-only "trial"
+# install never references it (the root bootstrap appset falls back to the public catalogue).
+# Set the repo name (per cluster, via tfvars) to enable the deployments overlay: the root
+# appset then targets this repo's bootstrap/, which imports the clean public appsets and
+# layers private values + adds extra apps. addons and workloads may share one repo or split.
+variable "gitops_addons_private_repo" {
+  description = "Private deployments repo for addons (empty = trial/public-only; set to opt in)"
+  type        = string
+  default     = ""
+}
+
+variable "gitops_addons_private_basepath" {
+  description = "Subtree within the private repo for addons (basepath); enables one-repo-or-two"
+  type        = string
+  default     = "addons"
+}
+
+variable "gitops_addons_private_revision" {
+  description = "Private overlay repo revision/branch/ref for addons values"
+  type        = string
+  default     = "main"
+}
+
+variable "gitops_workloads_private_repo" {
+  description = "Private deployments repo for workloads (empty = trial/public-only; set to opt in)"
+  type        = string
+  default     = ""
+}
+
+variable "gitops_workloads_private_basepath" {
+  description = "Subtree within the private repo for workloads (basepath); enables one-repo-or-two"
+  type        = string
+  default     = "workloads"
+}
+
+variable "gitops_workloads_private_revision" {
+  description = "Private overlay repo revision/branch/ref for workloads values"
   type        = string
   default     = "main"
 }

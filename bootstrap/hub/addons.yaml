@@ -4,6 +4,8 @@ metadata:
   name: addons
   namespace: argocd
 spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
   syncPolicy:
     preserveResourcesOnDeletion: true
   generators:
@@ -18,15 +20,30 @@ spec:
       name: 'addons'
     spec:
       project: default
+      # Deployments mode (GIT-13): if the cluster secret carries a non-empty
+      # `addons_private_repo_url`, target the private deployments repo's bootstrap/
+      # (a Kustomize build that imports the clean public appsets, layers private values
+      # and adds extra apps). Otherwise fall back to the public catalogue directory
+      # (trial mode, `directory.recurse` added by templatePatch below). The public
+      # `addons_repo_url` is never repointed, so every child appset keeps sourcing its
+      # `$values` base from the public catalogue.
       source:
-        repoURL: '{{metadata.annotations.addons_repo_url}}'
-        path: '{{metadata.annotations.addons_repo_basepath}}/{{metadata.annotations.addons_repo_path}}'
-        targetRevision: '{{metadata.annotations.addons_repo_revision}}'
+        repoURL: '{{- if .metadata.annotations.addons_private_repo_url }}{{ .metadata.annotations.addons_private_repo_url }}{{- else }}{{ .metadata.annotations.addons_repo_url }}{{- end }}'
+        targetRevision: '{{- if .metadata.annotations.addons_private_repo_url }}{{ .metadata.annotations.addons_private_repo_revision }}{{- else }}{{ .metadata.annotations.addons_repo_revision }}{{- end }}'
+        path: '{{- if .metadata.annotations.addons_private_repo_url }}{{ .metadata.annotations.addons_private_repo_basepath }}/bootstrap{{- else }}{{ .metadata.annotations.addons_repo_basepath }}/{{ .metadata.annotations.addons_repo_path }}{{- end }}'
+      destination:
+        namespace: 'argocd'
+        name: '{{ .name }}'
+      syncPolicy:
+        automated: {}
+  # Trial mode only: the public catalogue path is a plain directory of appsets, so it
+  # needs directory.recurse. In deployments mode the private bootstrap/ is a Kustomize
+  # build (auto-detected), and `directory` must be absent — so this patch is empty there.
+  templatePatch: |
+    {{- if not .metadata.annotations.addons_private_repo_url }}
+    spec:
+      source:
         directory:
           recurse: true
           exclude: exclude/*
-      destination:
-        namespace: 'argocd'
-        name: '{{name}}'
-      syncPolicy:
-        automated: {}
+    {{- end }}
