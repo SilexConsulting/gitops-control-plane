@@ -90,8 +90,8 @@ variable "argocd_chart_version" {
 variable "addons" {
   description = "Addon selector labels. Keys must match ^enable_[a-z0-9_-]+$"
   type        = map(bool)
-  default     = { # keep existing defaults
-    enable_argocd   = false  # hub
+  default = {             # keep existing defaults
+    enable_argocd = false # hub
   }
   validation {
     condition = alltrue([
@@ -105,6 +105,12 @@ variable "allowed_addons" {
   description = "Optional allowlist of known addon flags. Extend here (tfvars) when new add-ons are added to the catalogue."
   type        = list(string)
   default     = ["argocd", "keycloak", "velero", "cnpg"]
+}
+
+variable "allowed_workloads" {
+  description = "Optional allowlist of known workload flags (enable_<workload>). Extend here (tfvars) when new workloads are added to the catalogue. Used to validate enable_* keys alongside allowed_addons."
+  type        = list(string)
+  default     = ["home-assistant", "opensearch"]
 }
 
 variable "allow_unknown_addons" {

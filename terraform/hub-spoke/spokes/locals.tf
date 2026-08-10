@@ -52,8 +52,11 @@ locals {
     var.addons
   )
 
-  allowed_addons = formatlist("enable_%s", var.allowed_addons)
-  unknown_addons = tolist(setsubtract(toset(keys(var.addons)), toset(local.allowed_addons)))
+  allowed_addons    = formatlist("enable_%s", var.allowed_addons)
+  allowed_workloads = formatlist("enable_%s", var.allowed_workloads)
+  # All recognised enable_* keys: add-ons, workloads, plus the resources master switch (GIT-20).
+  allowed_enable_keys = distinct(concat(local.allowed_addons, local.allowed_workloads, ["enable_resources"]))
+  unknown_addons      = tolist(setsubtract(toset(keys(var.addons)), toset(local.allowed_enable_keys)))
 
   # Secret Metadata Annotations
   addons_metadata = merge(

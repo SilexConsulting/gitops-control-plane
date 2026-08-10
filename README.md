@@ -41,7 +41,10 @@ make on-prem-bootstrap CONTEXT=microk8s-context
 │   │   └── values.yaml
 │   ├── hub
 │   │   ├── addons.yaml
-│   │   └── workloads.yaml
+│   │   ├── workloads.yaml
+│   │   ├── resources.yaml                # global cluster-wide resources appset (GIT-20)
+│   │   ├── addons-resources-root.yaml    # trial-only delivery of addons-resources (GIT-20)
+│   │   └── workloads-resources-root.yaml # trial-only delivery of workloads-resources (GIT-20)
 │   └── spoke
 ├── kubeconfigs
 │   ├── README.md
@@ -88,6 +91,8 @@ Add-ons catalogue: default repository URL: <git organisation>/gitops-addons.git
 ```md
 .
 ├── README.md
+├── bootstrap
+│   └── resources.yaml                     # addons-resources ApplicationSet (GIT-20)
 ├── clusters
 │   ├── hub
 │   │   └── addons
@@ -95,13 +100,17 @@ Add-ons catalogue: default repository URL: <git organisation>/gitops-addons.git
 │       └── addons
 ├── environments
 │   └── default
-│       └── addons
-│           ├── argo-cd
-│           │   └── values.yaml
-│           ├── velero-ui
-│           │   └── values.yaml
-│           └── velero
-│               └── values.yaml
+│       ├── addons
+│       │   ├── argo-cd
+│       │   │   └── values.yaml
+│       │   ├── velero-ui
+│       │   │   └── values.yaml
+│       │   └── velero
+│       │       └── values.yaml
+│       ├── resources                      # cluster-wide resource manifests (GIT-20)
+│       │   └── kustomization.yaml
+│       └── addons-resources               # addon-owned resource manifests (GIT-20)
+│           └── kustomization.yaml
 └── gitops
     └── addons
         ├── oss
@@ -118,6 +127,8 @@ Add-ons catalogue: default repository URL: <git organisation>/gitops-addons.git
 Workloads catalogue: default repository URL: <git organisation>/gitops-workloads.git
 ```md
 .
+├── bootstrap
+│   └── resources.yaml                     # workloads-resources ApplicationSet (GIT-20)
 ├── clusters
 │   ├── hub
 │   │   └── workloads
@@ -125,17 +136,17 @@ Workloads catalogue: default repository URL: <git organisation>/gitops-workloads
 │       └── workloads
 ├── environments
 │   ├── default
-│   │   └── workloads
-│   │       └── home-assistant
-│   │           └── values.yaml
+│   │   ├── workloads
+│   │   │   └── home-assistant
+│   │   │       └── values.yaml
+│   │   └── resources                      # workload-owned resource manifests (GIT-20)
+│   │       └── kustomization.yaml
 │   └── dev
 │       └── workloads
 └── gitops
-├── resources
-│   └── pgcluster.yaml
-└── workloads
-└── home-assistant
-└── ApplicationSet.yaml
+    └── workloads
+        └── home-assistant
+            └── ApplicationSet.yaml
 ```
 The hierarchy for values files is:
 ```
@@ -147,6 +158,33 @@ The hierarchy for values files is:
 This directory structure enables you to use a single repository for everything.
 
 If you split these into separate Git repositories, you will need to create secrets for each repository. An example is included in bootstrap/argocd/secrets.yaml.
+
+## Resources (GIT-20)
+
+Beyond add-ons (Helm) and workloads (Helm), the platform can also reconcile **raw manifests** —
+CRD instances and plain objects — via a `resources/` convention. These reconcile **last** and are
+gated per-cluster by the `enable_resources` label. There are three categories, each an
+ApplicationSet that produces one Application per cluster named `cluster-<cluster_name>[-<scope>]-resources`:
+
+| Application | Category | Where the manifests live |
+|---|---|---|
+| `cluster-<name>-resources` | **cluster-wide** (no owner) — `IngressClass`, `StorageClass`, … | `gitops-addons/environments/<scope>/resources/` |
+| `cluster-<name>-addons-resources` | **addon-owned** — e.g. a CNPG `Cluster` | `gitops-addons/environments/<scope>/addons-resources/` |
+| `cluster-<name>-workloads-resources` | **workload-owned** — e.g. an ESO `ExternalSecret` | `gitops-workloads/environments/<scope>/resources/` |
+
+`<scope>` layers least→most specific: `environments/default` → `environments/<env>` →
+`clusters/<cluster>`. Each dir carries a root `kustomization.yaml` that **lists** the manifests to
+apply — anything not listed (e.g. an addon resource whose operator is disabled) is never rendered.
+
+- The global `resources` ApplicationSet is **root-level** (`bootstrap/hub/resources.yaml`, applied
+  in both modes). The `addons-resources` / `workloads-resources` ApplicationSets live in each
+  public repo's `bootstrap/resources.yaml` and are delivered inside that catalogue's flow — trial
+  mode via `bootstrap/hub/{addons,workloads}-resources-root.yaml` (trial-only), deployments mode
+  via the private repo's `bootstrap` import.
+- Enable it per cluster by adding `enable_resources = true` to the `addons` map in that cluster's
+  tfvars. Enable flags are validated against `allowed_addons` + `allowed_workloads` +
+  `enable_resources`; loading is toggled by `argocd_files_config.load_resources` (default true).
+- Full design and rationale: [`docs/git-20-resources-design.md`](docs/git-20-resources-design.md).
 
 ## Prerequisites
 
@@ -310,7 +348,7 @@ Hub (terraform/hub-spoke/hub)
 - kubernetes_version (string, default: "1.33.1") — KinD node image version.
 - cloud_provider (string, default: "local") — Allowed: local, aws, azure, gcp.
 - enable_gitops_bridge (bool, default: true) — Enable GitOps Bridge integration.
-- argocd_files_config (object, default: { load_addons=true, load_workloads=true }) — Control which file trees are rendered by Argo CD bootstrap.
+- argocd_files_config (object, default: { load_addons=true, load_workloads=true, load_resources=true }) — Control which file trees are rendered by Argo CD bootstrap (resources = GIT-20).
 - argocd_chart_version (string, default: "8.5.4") — Argo CD Helm chart version used by bootstrap.
 - addons (any, default: { enable_argocd=true, enable_keycloak=false, enable_velero=false }) — Toggle add-on families.
 - gitops_org (string, default: "https://github.com/SilexConsulting") — Org/user base URL for Git repositories.
@@ -336,7 +374,7 @@ Spokes (terraform/hub-spoke/spokes)
 - kubernetes_version (string, default: "1.33.1") — KinD node image version.
 - cloud_provider (string, default: "local") — Allowed: local, aws, azure, gcp.
 - enable_gitops_bridge (bool, default: false) — Usually false on spokes; Argo CD runs on hub.
-- argocd_files_config (object, default: { load_addons=true, load_workloads=true }).
+- argocd_files_config (object, default: { load_addons=true, load_workloads=true, load_resources=true }).
 - argocd_chart_version (string, default: "8.5.4").
 - addons (any, default: { enable_argocd=false, enable_keycloak=false, enable_velero=false, enable_cnpg=false }).
 - gitops_org (string, default: "https://github.com/SilexConsulting") — Base Git URL for addons/workloads.
