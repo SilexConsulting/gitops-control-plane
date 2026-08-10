@@ -21,7 +21,7 @@ resources without mutating the public catalogues.
 
 ## Design goals / non-goals
 
-**Goals**
+#### Goals
 - Keep the current repository structure for add-ons and workloads intact; only add paths.
 - A discoverable, low-ceremony convention: add a manifest + list it in a `kustomization.yaml`
   and it reconciles to the target cluster.
@@ -30,7 +30,7 @@ resources without mutating the public catalogues.
 - Resources are overridable/augmentable per environment and per cluster, and from the private
   deployments repo, via **Kustomize**.
 
-**Non-goals**
+#### Non-goals
 - No change to operator/add-on installation (still via add-ons).
 - No broad repo rearrangement — only additive paths and manifests.
 - No hard cross-Application ordering barrier; **eventual consistency** (Argo retry) is accepted.
