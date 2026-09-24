@@ -112,7 +112,15 @@ argocd-install: ## Install argocd
 	@kubectl create namespace argocd || true
 	@kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
+BOOTSTRAP_SECRET_NAMESPACES := argocd velero
+
 argocd-bootstrap: ## sops-decrypt & apply Argo CD secrets (optionally CONTEXT=your-kubectl-context)
+	@# Pre-create the target namespaces (idempotent) so secrets for add-ons that Argo has not
+	@# deployed yet (e.g. velero) do not fail with NotFound; the add-on's CreateNamespace adopts it.
+	@for ns in $(BOOTSTRAP_SECRET_NAMESPACES); do \
+		kubectl $(if $(CONTEXT),--context $(CONTEXT)) create namespace $$ns --dry-run=client -o yaml | \
+		kubectl $(if $(CONTEXT),--context $(CONTEXT)) apply -f - ; \
+	done
 	sops -d bootstrap/argocd/secrets.enc.yaml | kubectl $(if $(CONTEXT),--context $(CONTEXT)) apply -f -
 
 argocd-ui: ## Access argocd ui
