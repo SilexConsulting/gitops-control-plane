@@ -38,6 +38,14 @@ resource "helm_release" "argocd" {
   dependency_update          = try(var.argocd.dependency_update, null)
   replace                    = try(var.argocd.replace, null)
   lint                       = try(var.argocd.lint, null)
+
+  # Argo CD manages itself after bootstrap (the `addons-argocd` addon adopts this release; its
+  # config comes from the addons catalogue + per-cluster overlays). Terraform only seeds the
+  # first install, so it must not revert Argo's own upgrades/config on later applies.
+  # To change Argo CD after bootstrap: edit the addons catalogue, not these Terraform values.
+  lifecycle {
+    ignore_changes = [version, values]
+  }
 }
 
 

@@ -107,6 +107,12 @@ locals {
   }
   argocd_apps = { for k, v in local.argocd_apps_all : k => v if v != "" }
 
+  # Bootstrap SEED only: Argo CD self-manages afterwards via the addons catalogue
+
+  # (gitops-addons environments/default/addons/argo-cd), and the module ignores later
+
+  # changes to these values. Keep them in step with the catalogue default.
+
   argocd_helm_values = <<-EOT
     dex:
       enabled: false
