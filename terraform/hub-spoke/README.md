@@ -47,7 +47,7 @@ Tip: Base cluster labels (environment, region, cloud, distro, version, type) are
 
 #### 2) Control validation behavior
 
-- `allowed_addons` (list of strings) defines the allowlist of known addons. Defaults include: `argocd, keycloak, velero, cnpg`.
+- `allowed_addons` (list of strings) defines the allowlist of known addons. Defaults include: `argocd, keycloak, velero, cnpg, mariadb_operator`.
 - `allow_unknown_addons` (bool) controls how unknown `enable_*` keys are treated:
   - `true` (default): lenient mode. Unknown keys are permitted.
   - `false`: strict mode. Terraform will error if unknown addons are found.
@@ -91,7 +91,7 @@ Notes:
   - True values mark the addon as enabled and are forwarded as cluster labels via the GitOps Bridge.
 
 - `variable "allowed_addons" (list(string))`
-  - The allowlist of known addons (without the `enable_` prefix). Defaults: `argocd`, `keycloak`, `velero`, `cnpg`.
+  - The allowlist of known addons (without the `enable_` prefix). Defaults: `argocd`, `keycloak`, `velero`, `cnpg`, `mariadb_operator`.
 
 - `variable "allow_unknown_addons" (bool)`
   - Default: `true` (lenient). Set to `false` for strict validation.
