@@ -86,7 +86,7 @@ variable "addons" {
 variable "allowed_addons" {
   description = "Optional allowlist of known addon flags."
   type        = list(string)
-  default     = ["argocd", "keycloak", "velero", "cnpg"]
+  default     = ["argocd", "keycloak", "velero", "cnpg", "mariadb_operator"]
 }
 
 variable "allowed_workloads" {
