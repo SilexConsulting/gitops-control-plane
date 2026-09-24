@@ -11,10 +11,10 @@ spec:
   generators:
     - clusters:
         selector:
-          matchExpressions:
-            - key: type
-              operator: In
-              values: ["hub"]
+          # Select the hub by `is_hub`, not `type`: KinD hubs are `type: hub`, but the on-prem
+          # cluster (ivylen) is its own hub with `type: workload` — both carry `is_hub: "true"`.
+          matchLabels:
+            is_hub: "true"
   template:
     metadata:
       name: 'addons'

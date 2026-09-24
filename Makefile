@@ -112,8 +112,8 @@ argocd-install: ## Install argocd
 	@kubectl create namespace argocd || true
 	@kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-argocd-bootstrap:
-	sops -d bootstrap/argocd/secrets.enc.yaml | kubectl apply -f -
+argocd-bootstrap: ## sops-decrypt & apply Argo CD secrets (optionally CONTEXT=your-kubectl-context)
+	sops -d bootstrap/argocd/secrets.enc.yaml | kubectl $(if $(CONTEXT),--context $(CONTEXT)) apply -f -
 
 argocd-ui: ## Access argocd ui
 	@kubectl port-forward svc/argo-cd-argocd-server -n argocd 8088:443
