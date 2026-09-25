@@ -106,7 +106,13 @@ variable "addons" {
 variable "allowed_addons" {
   description = "Optional allowlist of known addon flags. Extend here (tfvars) when new add-ons are added to the catalogue."
   type        = list(string)
-  default     = ["argocd", "keycloak", "velero", "cnpg", "mariadb_operator"]
+  default     = ["argocd", "keycloak", "velero", "cnpg", "mariadb_operator", "metallb"]
+}
+
+variable "distro_provided_addons" {
+  description = "Add-ons whose controller is provided by the Kubernetes distro (e.g. `microk8s enable metallb`) rather than the GitOps catalogue. Legacy, to migrate off (GIT-3): recorded here as an inventory and so the same add-on can't also be enabled via enable_<addon> (double install). Their CONFIG still lives in Git (addons-resources)."
+  type        = list(string)
+  default     = []
 }
 
 variable "allowed_workloads" {
