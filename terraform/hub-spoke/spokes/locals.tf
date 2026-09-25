@@ -57,6 +57,8 @@ locals {
   # All recognised enable_* keys: add-ons, workloads, plus the resources master switch (GIT-20).
   allowed_enable_keys = distinct(concat(local.allowed_addons, local.allowed_workloads, ["enable_resources"]))
   unknown_addons      = tolist(setsubtract(toset(keys(var.addons)), toset(local.allowed_enable_keys)))
+  # GIT-3: an add-on must not be both distro-provided and enabled via the catalogue.
+  distro_addon_conflicts = [for a in var.distro_provided_addons : a if try(var.addons["enable_${a}"], false)]
 
   # Secret Metadata Annotations
   addons_metadata = merge(
