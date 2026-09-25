@@ -72,7 +72,7 @@ variable "argocd_files_config" {
 variable "argocd_chart_version" {
   description = "Argocd helm chart version"
   type        = string
-  default     = "7.7.12"
+  default     = "10.9.2" # GIT-26: SEED only (Argo self-manages); keep = catalogue addons-argocd default
 }
 
 variable "addons" {
