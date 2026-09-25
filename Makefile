@@ -75,6 +75,9 @@ terraform-all-rm-state: ## remove all terraform states
 	@find . -name terraform.tfstate* -exec rm -rf {} +
 
 ##@ KinD
+# KinD hub cluster name = terraform/hub-spoke/hub var.cluster_type (default "hub").
+HUB_CLUSTER_NAME ?= hub
+
 kind-delete: ## Delete kind cluster: 'hub' for hub cluster, 'spokes' for all spoke clusters, or specify spoke name
 	@if [ -z "$(WHAT)" ]; then \
 		echo "Please specify: 'hub', 'spokes', or spoke name"; \
@@ -82,7 +85,7 @@ kind-delete: ## Delete kind cluster: 'hub' for hub cluster, 'spokes' for all spo
 	fi
 	@if [ "$(WHAT)" = "hub" ]; then \
 		echo "Deleting hub cluster..."; \
-		kind delete cluster --name=hub-control || true; \
+		kind delete cluster --name=$(HUB_CLUSTER_NAME) || true; \
 	elif [ "$(WHAT)" = "spokes" ]; then \
 		echo "Deleting all spoke clusters..."; \
 		kind get clusters | grep -E 'spoke-(dev|uat|prod)' | xargs -r -I {} kind delete cluster --name {}; \
