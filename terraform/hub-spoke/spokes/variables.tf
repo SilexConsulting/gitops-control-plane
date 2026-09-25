@@ -104,7 +104,7 @@ variable "addons" {
 variable "allowed_addons" {
   description = "Optional allowlist of known addon flags. Extend here (tfvars) when new add-ons are added to the catalogue."
   type        = list(string)
-  default     = ["argocd", "keycloak", "velero", "cnpg", "mariadb_operator", "metallb", "external_secrets", "cert_manager"]
+  default     = ["argocd", "keycloak", "velero", "cnpg", "mariadb_operator", "metallb", "external_secrets", "cert_manager", "longhorn"]
 }
 
 variable "distro_provided_addons" {
