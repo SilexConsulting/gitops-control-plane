@@ -118,6 +118,15 @@ argocd-install: ## Install argocd
 argocd-bootstrap: ## sops-decrypt & apply Argo CD secrets (optionally CONTEXT=your-kubectl-context)
 	sops -d bootstrap/argocd/secrets.enc.yaml | kubectl $(if $(CONTEXT),--context $(CONTEXT)) apply -f -
 
+# Private (deployments) repo checkout; the workspace layout has it next to this repo.
+PRIVATE_REPO ?= ../gitops-private
+
+private-secrets: ## sops-decrypt & apply every *.enc.yaml under the private repo's {addons,workloads}/clusters/CLUSTER (CLUSTER=, optionally CONTEXT=, PRIVATE_REPO=)
+	@test -n "$(CLUSTER)" || { echo "CLUSTER= is required (e.g. CLUSTER=ivylen)"; exit 1; }
+	@files=$$(find $(PRIVATE_REPO)/addons/clusters/$(CLUSTER) $(PRIVATE_REPO)/workloads/clusters/$(CLUSTER) -name '*.enc.yaml' 2>/dev/null | sort); \
+	test -n "$$files" || { echo "no *.enc.yaml for cluster $(CLUSTER) under $(PRIVATE_REPO)"; exit 1; }; \
+	for f in $$files; do echo "== $$f"; sops -d "$$f" | kubectl $(if $(CONTEXT),--context $(CONTEXT)) apply -f -; done
+
 argocd-ui: ## Access argocd ui
 	@kubectl port-forward svc/argo-cd-argocd-server -n argocd 8088:443
 
