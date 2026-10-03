@@ -86,7 +86,7 @@ variable "addons" {
 variable "allowed_addons" {
   description = "Optional allowlist of known addon flags."
   type        = list(string)
-  default     = ["argocd", "keycloak", "velero", "cnpg", "mariadb_operator", "metallb", "external_secrets", "cert_manager", "longhorn", "external_dns"]
+  default     = ["argocd", "keycloak", "velero", "cnpg", "mariadb_operator", "metallb", "external_secrets", "cert_manager", "longhorn", "external_dns", "mongodb"]
 }
 
 variable "distro_provided_addons" {
